@@ -1,9 +1,8 @@
-
-p{
-  color: red;
+p {
+  color: rgb(255, 0, 0);
   font-size: 20px;
 }
-div{
+div {
   width: 200px;
   height: 200px;
   background-color: yellow;
