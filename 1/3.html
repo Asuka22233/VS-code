@@ -1,421 +1,1057 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>test03</title>
+    <title>肝硬化的生化逻辑：从实验室指标到临床床旁</title>
+
+    <!-- 引入 Reveal.js 样式 -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reset.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/white.min.css"
+      id="theme"
+    />
+
+    <!-- 引入 FontAwesome 图标 -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <!-- 引入 Markdown 解析库 (用于渲染 AI 回复) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+
     <style>
-      /* Reset and base styles */
-
-      /* CSS Variables */
+      /* 自定义医学配色主题 */
       :root {
-        --electric-border-color: #dd8448;
-        --electric-light-color: oklch(from var(--electric-border-color) l c h);
-        --gradient-color: oklch(
-          from var(--electric-border-color) 0.3 calc(c / 2) h / 0.4
-        );
-        --color-neutral-900: oklch(0.185 0 0);
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+        --med-blue: #003366;
+        --liver-red: #8b0000;
+        --alert-yellow: #ffcc00;
+        --light-bg: #f4f7f6;
+        --text-grey: #333;
+        --ai-bg: #ffffff;
+        --ai-border: #e0e0e0;
       }
 
       body {
-        font-family: system-ui, -apple-system, sans-serif;
-        background-color: oklch(0.145 0 0);
-        color: oklch(0.985 0 0);
-        height: 100vh;
-        overflow: hidden;
+        background-color: var(--light-bg);
       }
 
-      /* Main container */
-      .main-container {
+      .reveal {
+        color: var(--text-grey);
+        font-family: "Helvetica Neue", Helvetica, Arial, "Microsoft YaHei",
+          sans-serif;
+      }
+      .reveal h1,
+      .reveal h2,
+      .reveal h3,
+      .reveal h4 {
+        color: var(--med-blue);
+        text-transform: none;
+        font-weight: bold;
+      }
+
+      /* 强调色类 */
+      .text-red {
+        color: var(--liver-red);
+      }
+      .text-blue {
+        color: var(--med-blue);
+      }
+      .text-yellow {
+        color: #d4a000;
+      }
+
+      /* 布局辅助 */
+      .flex-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+      }
+      .flex-col {
+        flex: 1;
+        text-align: center;
+      }
+      .box {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin: 10px;
+      }
+
+      /* 仪表盘模拟 */
+      .gauge-container {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+      }
+      .gauge {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        border: 10px solid #ddd;
+        position: relative;
         display: flex;
         flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 10px;
+        background: white;
+      }
+      .gauge.danger {
+        border-top-color: var(--liver-red);
+        border-right-color: var(--liver-red);
+      }
+      .gauge.warning {
+        border-top-color: var(--alert-yellow);
+        border-right-color: var(--alert-yellow);
+      }
+      .gauge i {
+        font-size: 2.5em;
+        color: var(--med-blue);
+        margin-bottom: 10px;
+      }
+      .gauge span {
+        font-size: 0.6em;
+        font-weight: bold;
+      }
+      .gauge val {
+        font-size: 1.2em;
+        color: var(--liver-red);
+        font-weight: bold;
+      }
+
+      /* 流程图箭头 */
+      .arrow-down {
+        font-size: 2em;
+        color: var(--med-blue);
+        margin: 10px 0;
+      }
+      .arrow-right {
+        font-size: 2em;
+        color: var(--med-blue);
+        margin: 0 10px;
+      }
+
+      /* 特殊组件样式 */
+      .factory-line {
+        border-bottom: 5px solid #ccc;
+        position: relative;
+        height: 100px;
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-end;
+        padding-bottom: 10px;
+        margin-top: 50px;
+      }
+      .factory-item {
+        font-size: 3em;
+        transition: all 0.5s;
+      }
+      .factory-broken .factory-item {
+        color: var(--liver-red);
+        opacity: 0.5;
+      }
+      .cross-mark {
+        position: absolute;
+        font-size: 4em;
+        color: red;
+        top: -20px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        opacity: 0.8;
+      }
+
+      .brain-box {
+        border: 3px solid var(--med-blue);
+        padding: 20px;
+        border-radius: 20px;
+        background: rgba(0, 51, 102, 0.05);
+      }
+      .scale-container {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        height: 200px;
+        gap: 50px;
+      }
+      .scale-pan {
+        width: 100px;
+        height: 80px;
+        background: var(--med-blue);
+        color: white;
+        border-radius: 0 0 50px 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+      }
+      .scale-pan.heavy {
+        transform: translateY(40px);
+        background: var(--liver-red);
+      }
+      .scale-pan.light {
+        transform: translateY(-40px);
+        opacity: 0.6;
+      }
+
+      /* 比较表格 */
+      .compare-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8em;
+      }
+      .compare-table th {
+        background: var(--med-blue);
+        color: white;
+        padding: 15px;
+      }
+      .compare-table td {
+        border-bottom: 1px solid #ddd;
+        padding: 15px;
+      }
+      .compare-table tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      /* --- AI Assistant Styles --- */
+      .ai-fab {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--med-blue), #0055aa);
+        color: white;
+        border-radius: 50%;
+        display: flex;
         align-items: center;
         justify-content: center;
-        height: 100vh;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        z-index: 9999;
+        transition: transform 0.3s;
+        font-size: 28px;
       }
-
-      /* SVG positioning */
-      .svg-container {
-        position: absolute;
-      }
-
-      /* Card container */
-      .card-container {
-        padding: 2px;
-        border-radius: 24px;
-        position: relative;
-        background: linear-gradient(
-            -30deg,
-            var(--gradient-color),
-            transparent,
-            var(--gradient-color)
-          ),
-          linear-gradient(
-            to bottom,
-            var(--color-neutral-900),
-            var(--color-neutral-900)
-          );
-      }
-
-      /* Inner container */
-      .inner-container {
-        position: relative;
-      }
-
-      /* Border layers */
-      .border-outer {
-        border: 2px solid rgba(221, 132, 72, 0.5);
-        border-radius: 24px;
-        padding-right: 4px;
-        padding-bottom: 4px;
-      }
-
-      .main-card {
-        width: 350px;
-        height: 500px;
-        border-radius: 24px;
-        border: 2px solid var(--electric-border-color);
-        margin-top: -4px;
-        margin-left: -4px;
-        filter: url(#turbulent-displace);
-      }
-
-      /* Glow effects */
-      .glow-layer-1 {
-        border: 2px solid rgba(221, 132, 72, 0.6);
-        border-radius: 24px;
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        filter: blur(1px);
-      }
-
-      .glow-layer-2 {
-        border: 2px solid var(--electric-light-color);
-        border-radius: 24px;
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        filter: blur(4px);
-      }
-
-      /* Overlay effects */
-      .overlay-1 {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        border-radius: 24px;
-        opacity: 1;
-        mix-blend-mode: overlay;
+      .ai-fab:hover {
         transform: scale(1.1);
-        filter: blur(16px);
-        background: linear-gradient(
-          -30deg,
-          white,
-          transparent 30%,
-          transparent 70%,
-          white
-        );
       }
 
-      .overlay-2 {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        border-radius: 24px;
-        opacity: 0.5;
-        mix-blend-mode: overlay;
-        transform: scale(1.1);
-        filter: blur(16px);
-        background: linear-gradient(
-          -30deg,
-          white,
-          transparent 30%,
-          transparent 70%,
-          white
-        );
-      }
-
-      /* Background glow */
-      .background-glow {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        border-radius: 24px;
-        filter: blur(32px);
-        transform: scale(1.1);
-        opacity: 0.3;
-        z-index: -1;
-        background: linear-gradient(
-          -30deg,
-          var(--electric-light-color),
-          transparent,
-          var(--electric-border-color)
-        );
-      }
-
-      /* Content container */
-      .content-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: 100%;
-        height: 100%;
+      .ai-panel {
+        position: fixed;
+        bottom: 100px;
+        right: 30px;
+        width: 380px;
+        height: 550px;
+        background: var(--ai-bg);
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        z-index: 9998;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
+        border: 1px solid var(--ai-border);
+        transform-origin: bottom right;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       }
-
-      /* Content sections */
-      .content-top {
-        display: flex;
-        flex-direction: column;
-        padding: 48px;
-        padding-bottom: 16px;
-        height: 100%;
-      }
-
-      .content-bottom {
-        display: flex;
-        flex-direction: column;
-        padding: 48px;
-        padding-top: 16px;
-      }
-
-      /* Scrollbar glass component */
-      .scrollbar-glass {
-        background: radial-gradient(
-            47.2% 50% at 50.39% 88.37%,
-            rgba(255, 255, 255, 0.12) 0%,
-            rgba(255, 255, 255, 0) 100%
-          ),
-          rgba(255, 255, 255, 0.04);
-        position: relative;
-        transition: background 0.3s ease;
-        border-radius: 14px;
-        width: fit-content;
-        height: fit-content;
-        padding: 8px 16px;
-        text-transform: uppercase;
-        font-weight: bold;
-        font-size: 14px;
-        color: rgba(255, 255, 255, 0.8);
-      }
-
-      .scrollbar-glass:hover {
-        background: radial-gradient(
-            47.2% 50% at 50.39% 88.37%,
-            rgba(255, 255, 255, 0.12) 0%,
-            rgba(255, 255, 255, 0) 100%
-          ),
-          rgba(255, 255, 255, 0.08);
-      }
-
-      .scrollbar-glass::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        padding: 1px;
-        background: linear-gradient(
-          150deg,
-          rgba(255, 255, 255, 0.48) 16.73%,
-          rgba(255, 255, 255, 0.08) 30.2%,
-          rgba(255, 255, 255, 0.08) 68.2%,
-          rgba(255, 255, 255, 0.6) 81.89%
-        );
-        border-radius: inherit;
-        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        mask-composite: xor;
-        -webkit-mask-composite: xor;
+      .ai-panel.hidden {
+        transform: scale(0);
+        opacity: 0;
         pointer-events: none;
       }
 
-      /* Typography */
-      .title {
-        font-size: 36px;
-        font-weight: 500;
-        margin-top: auto;
+      .ai-header {
+        background: var(--med-blue);
+        color: white;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
-
-      .description {
-        opacity: 0.5;
+      .ai-header h3 {
+        margin: 0;
+        font-size: 1.1em;
+        color: white;
+        font-weight: normal;
       }
-
-      /* Divider */
-      .divider {
-        margin-top: auto;
+      .close-btn {
+        background: none;
         border: none;
-        height: 1px;
-        background-color: currentColor;
-        opacity: 0.1;
-        mask-image: linear-gradient(to right, transparent, black, transparent);
-        -webkit-mask-image: linear-gradient(
-          to right,
-          transparent,
-          black,
-          transparent
-        );
+        color: white;
+        font-size: 1.5em;
+        cursor: pointer;
+      }
+
+      .ai-content {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        background: #f9f9f9;
+        font-size: 0.9em;
+      }
+
+      .ai-message {
+        margin-bottom: 15px;
+        padding: 10px 15px;
+        border-radius: 10px;
+        line-height: 1.5;
+        max-width: 90%;
+        word-wrap: break-word;
+      }
+      .ai-message.system {
+        background: #e6f3ff;
+        color: #003366;
+        align-self: flex-start;
+        border-top-left-radius: 2px;
+      }
+      .ai-message.user {
+        background: var(--med-blue);
+        color: white;
+        margin-left: auto;
+        border-top-right-radius: 2px;
+      }
+      /* Markdown styles within chat */
+      .ai-message p {
+        margin: 5px 0;
+      }
+      .ai-message strong {
+        color: #d63384;
+        font-weight: 600;
+      }
+
+      .ai-controls {
+        padding: 10px;
+        background: white;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .ai-action-btn {
+        background: white;
+        border: 1px solid var(--med-blue);
+        color: var(--med-blue);
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .ai-action-btn:hover {
+        background: #e6f3ff;
+      }
+
+      .ai-input-area {
+        padding: 10px;
+        background: white;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 10px;
+      }
+      .ai-input-area input {
+        flex: 1;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 20px;
+        outline: none;
+      }
+      .ai-input-area button {
+        background: var(--med-blue);
+        color: white;
+        border: none;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .ai-input-area button:disabled {
+        background: #ccc;
+      }
+
+      .typing-indicator::after {
+        content: "...";
+        animation: typing 1.5s infinite;
+      }
+      @keyframes typing {
+        0% {
+          content: ".";
+        }
+        33% {
+          content: "..";
+        }
+        66% {
+          content: "...";
+        }
       }
     </style>
   </head>
   <body>
-    <main class="main-container">
-      <svg class="svg-container">
-        <defs>
-          <filter
-            id="turbulent-displace"
-            colorInterpolationFilters="sRGB"
-            x="-20%"
-            y="-20%"
-            width="140%"
-            height="140%"
+    <div class="reveal">
+      <div class="slides">
+        <!-- Slide 1: 封面 -->
+        <section
+          data-background-gradient="linear-gradient(to bottom right, #f4f7f6, #e0eafc)"
+        >
+          <div class="flex-container">
+            <div class="flex-col" style="flex: 1">
+              <i
+                class="fas fa-heartbeat"
+                style="font-size: 6em; color: var(--med-blue)"
+              ></i>
+            </div>
+            <div class="flex-col" style="flex: 2; text-align: left">
+              <h1>肝硬化的生化逻辑</h1>
+              <h3 class="text-blue" style="opacity: 0.8">
+                从实验室指标到临床床旁
+              </h3>
+              <p
+                style="
+                  margin-top: 40px;
+                  font-size: 0.8em;
+                  color: var(--liver-red);
+                "
+              >
+                <i class="fas fa-microscope"></i> 临床表现背后的分子机制解密
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 2: 侦探的仪表盘 -->
+        <section>
+          <h2><i class="fas fa-tachometer-alt"></i> 侦探的仪表盘</h2>
+          <p>直接指向肝硬化的核心指标</p>
+          <div class="gauge-container">
+            <div class="gauge warning fragment fade-up">
+              <i class="fas fa-wave-square"></i>
+              <span>结构 (B超)</span>
+              <val>变形</val>
+            </div>
+            <div class="gauge danger fragment fade-up">
+              <i class="fas fa-industry"></i>
+              <span>合成 (Alb)</span>
+              <val>↓ Low</val>
+            </div>
+            <div class="gauge danger fragment fade-up">
+              <i class="fas fa-trash-alt"></i>
+              <span>代谢 (TBil)</span>
+              <val>↑ 150</val>
+            </div>
+            <div class="gauge danger fragment fade-up">
+              <i class="fas fa-bomb"></i>
+              <span>损伤 (Enz)</span>
+              <val>↑ High</val>
+            </div>
+            <div class="gauge danger fragment fade-up">
+              <i class="fas fa-skull-crossbones"></i>
+              <span>解毒 (NH3)</span>
+              <val>↑ Toxic</val>
+            </div>
+          </div>
+          <div
+            class="box fragment"
+            style="background: #fff3cd; color: #856404; font-size: 0.7em"
           >
-            <feTurbulence
-              type="turbulence"
-              baseFrequency="0.02"
-              numOctaves="10"
-              result="noise1"
-              seed="1"
-            />
-            <feOffset in="noise1" dx="0" dy="0" result="offsetNoise1">
-              <animate
-                attributeName="dy"
-                values="700; 0"
-                dur="6s"
-                repeatCount="indefinite"
-                calcMode="linear"
-              />
-            </feOffset>
-
-            <feTurbulence
-              type="turbulence"
-              baseFrequency="0.02"
-              numOctaves="10"
-              result="noise2"
-              seed="1"
-            />
-            <feOffset in="noise2" dx="0" dy="0" result="offsetNoise2">
-              <animate
-                attributeName="dy"
-                values="0; -700"
-                dur="6s"
-                repeatCount="indefinite"
-                calcMode="linear"
-              />
-            </feOffset>
-
-            <feTurbulence
-              type="turbulence"
-              baseFrequency="0.02"
-              numOctaves="10"
-              result="noise1"
-              seed="2"
-            />
-            <feOffset in="noise1" dx="0" dy="0" result="offsetNoise3">
-              <animate
-                attributeName="dx"
-                values="490; 0"
-                dur="6s"
-                repeatCount="indefinite"
-                calcMode="linear"
-              />
-            </feOffset>
-
-            <feTurbulence
-              type="turbulence"
-              baseFrequency="0.02"
-              numOctaves="10"
-              result="noise2"
-              seed="2"
-            />
-            <feOffset in="noise2" dx="0" dy="0" result="offsetNoise4">
-              <animate
-                attributeName="dx"
-                values="0; -490"
-                dur="6s"
-                repeatCount="indefinite"
-                calcMode="linear"
-              />
-            </feOffset>
-
-            <feComposite in="offsetNoise1" in2="offsetNoise2" result="part1" />
-            <feComposite in="offsetNoise3" in2="offsetNoise4" result="part2" />
-            <feBlend
-              in="part1"
-              in2="part2"
-              mode="color-dodge"
-              result="combinedNoise"
-            />
-
-            <feDisplacementMap
-              in="SourceGraphic"
-              in2="combinedNoise"
-              scale="30"
-              xChannelSelector="R"
-              yChannelSelector="B"
-            />
-          </filter>
-        </defs>
-      </svg>
-
-      <div class="card-container">
-        <div class="inner-container">
-          <div class="border-outer">
-            <div class="main-card"></div>
+            工厂倒闭 = 产品造不出 + 垃圾运不走 + 机器爆炸 + 毒气泄漏
           </div>
-          <div class="glow-layer-1"></div>
-          <div class="glow-layer-2"></div>
-        </div>
+        </section>
 
-        <div class="overlay-1"></div>
-        <div class="overlay-2"></div>
-        <div class="background-glow"></div>
+        <!-- Slide 3: 连连看 -->
+        <section>
+          <h3>连连看：指标如何导致症状？</h3>
+          <div class="flex-container" style="margin-top: 50px">
+            <div class="flex-col">
+              <div class="box fragment" data-fragment-index="1">
+                <h4 class="text-red">TBil ↑</h4>
+                <p>胆红素积聚</p>
+              </div>
+              <div class="arrow-down fragment" data-fragment-index="1">↓</div>
+              <div
+                class="box fragment"
+                data-fragment-index="1"
+                style="border-left: 5px solid #ffcc00"
+              >
+                <h4><i class="fas fa-eye text-yellow"></i> 黄疸</h4>
+                <small>皮肤/巩膜黄染</small>
+              </div>
+            </div>
 
-        <div class="content-container">
-          <div class="content-top">
-            <div class="scrollbar-glass">Dramatic</div>
-            <p class="title">Electric Border</p>
+            <div class="flex-col">
+              <div class="box fragment" data-fragment-index="2">
+                <h4 class="text-red">Alb ↓</h4>
+                <p>胶体渗透压↓</p>
+              </div>
+              <div class="arrow-down fragment" data-fragment-index="2">↓</div>
+              <div
+                class="box fragment"
+                data-fragment-index="2"
+                style="border-left: 5px solid var(--med-blue)"
+              >
+                <h4><i class="fas fa-water text-blue"></i> 腹水</h4>
+                <small>门脉高压协同作用</small>
+              </div>
+            </div>
+
+            <div class="flex-col">
+              <div class="box fragment" data-fragment-index="3">
+                <h4 class="text-red">NH₃ ↑</h4>
+                <p>神经毒性</p>
+              </div>
+              <div class="arrow-down fragment" data-fragment-index="3">↓</div>
+              <div
+                class="box fragment"
+                data-fragment-index="3"
+                style="border-left: 5px solid var(--liver-red)"
+              >
+                <h4><i class="fas fa-brain text-red"></i> 肝性脑病</h4>
+                <small>意识障碍</small>
+              </div>
+            </div>
           </div>
+        </section>
 
-          <hr class="divider" />
-
-          <div class="content-bottom">
-            <p class="description">
-              In case you'd like to emphasize something very dramatically.
+        <!-- Slide 4: 肝性脑病核心 -->
+        <section>
+          <h2><i class="fas fa-road"></i> 氨的“入脑之旅”</h2>
+          <div class="flex-container">
+            <div class="flex-col box" style="opacity: 0.5">
+              <i class="fas fa-filter fa-3x"></i>
+              <p>肝脏（解毒失败）</p>
+              <small>尿素循环瘫痪</small>
+            </div>
+            <div class="arrow-right text-red">
+              <i class="fas fa-long-arrow-alt-right"></i> <br />
+              侧支循环逃逸
+            </div>
+            <div class="flex-col box brain-box">
+              <i class="fas fa-brain fa-3x text-red"></i>
+              <p class="text-red"><strong>大脑（被迫代偿）</strong></p>
+              <small>NH₃ 穿过血脑屏障</small>
+            </div>
+          </div>
+          <div class="fragment box" style="margin-top: 30px">
+            <p style="font-size: 1.2em">
+              <strong>"一句话：肝脏罢工，大脑中毒"</strong>
             </p>
           </div>
+        </section>
+
+        <!-- Slide 5: 机制一：能量被偷走 -->
+        <section>
+          <h3>机制一：能量被“偷走”了 <small>(TCA循环障碍)</small></h3>
+          <div
+            style="
+              background: white;
+              padding: 20px;
+              border-radius: 10px;
+              margin-bottom: 20px;
+            "
+          >
+            <p class="text-blue">星形胶质细胞的“自杀式”解毒反应：</p>
+            <p style="font-size: 1.2em">
+              $$ NH_3 + \text{Glutamate} \rightarrow \mathbf{Glutamine} $$
+            </p>
+          </div>
+
+          <div class="flex-container fragment">
+            <div class="flex-col">
+              <i class="fas fa-sync fa-spin fa-3x" style="color: #ccc"></i>
+              <p>TCA 循环卡顿</p>
+              <small>因 $\alpha$-酮戊二酸 被挪用</small>
+            </div>
+            <div class="arrow-right">→</div>
+            <div class="flex-col">
+              <i class="fas fa-battery-empty fa-3x text-red"></i>
+              <p class="text-red">ATP 耗竭</p>
+              <small>脑代谢下降</small>
+            </div>
+          </div>
+
+          <aside class="notes">
+            话术：同学们，想象一下，星形胶质细胞为了处理氨这个‘恐怖分子’，不得不拆掉自家的‘发电机零件’（α-酮戊二酸）来中和它。结果氨是处理掉了，但发电机（TCA循环）也停转了，大脑这就断电了。
+          </aside>
+        </section>
+
+        <!-- Slide 6: 机制一（续）：脑水肿 -->
+        <section>
+          <h3>机制一（续）：物理性脑水肿</h3>
+          <div class="flex-container">
+            <div class="flex-col">
+              <div
+                style="
+                  border: 2px dashed #999;
+                  padding: 20px;
+                  border-radius: 50%;
+                  width: 150px;
+                  height: 150px;
+                  margin: auto;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                "
+              >
+                <i
+                  class="fas fa-star"
+                  style="font-size: 3em; color: var(--med-blue)"
+                ></i>
+              </div>
+              <p>正常星形胶质细胞</p>
+            </div>
+            <div class="flex-col fragment">
+              <h4 class="text-red">Glutamine 是高渗物质</h4>
+              <i class="fas fa-arrow-right text-blue"></i> 吸水
+            </div>
+            <div class="flex-col fragment">
+              <div
+                style="
+                  background: #e6f3ff;
+                  border: 2px solid var(--med-blue);
+                  padding: 20px;
+                  border-radius: 50%;
+                  width: 200px;
+                  height: 200px;
+                  margin: auto;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  box-shadow: 0 0 15px var(--med-blue);
+                "
+              >
+                <i
+                  class="fas fa-star"
+                  style="font-size: 4em; color: var(--med-blue); opacity: 0.5"
+                ></i>
+              </div>
+              <p class="text-red"><strong>细胞肿胀 (脑水肿)</strong></p>
+              <small>颅内压增高</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 7: 机制二：神经递质失灵 -->
+        <section>
+          <h3>机制二：神经递质的“刹车”失灵</h3>
+          <div class="scale-container">
+            <div class="flex-col fragment">
+              <div class="scale-pan light">
+                <span>兴奋性<br />(Glutamate)</span>
+              </div>
+              <small>被消耗去结合氨了</small>
+            </div>
+
+            <div style="font-size: 3em; color: #666">
+              <i class="fas fa-balance-scale-right"></i>
+            </div>
+
+            <div class="flex-col fragment">
+              <div class="scale-pan heavy">
+                <span>抑制性<br />(GABA/假性)</span>
+              </div>
+              <small>氨促进其生成</small>
+            </div>
+          </div>
+          <div class="box fragment fade-up" style="margin-top: 30px">
+            <p class="text-red">
+              <strong>结果：脑子被“踩死刹车” → 嗜睡、昏迷</strong>
+            </p>
+          </div>
+        </section>
+
+        <!-- Slide 8: 鉴别诊断 HE vs DKA -->
+        <section>
+          <h3><i class="fas fa-exchange-alt"></i> 鉴别诊断：HE vs DKA</h3>
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>特征</th>
+                <th>HE (肝性脑病)</th>
+                <th>DKA (酮症酸中毒)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment">
+                <td><strong>核心物质</strong></td>
+                <td class="text-red">毒性氨 (NH₃)</td>
+                <td>酮酸 + 高渗</td>
+              </tr>
+              <tr class="fragment">
+                <td><strong>脑状态</strong></td>
+                <td>
+                  <strong>代谢性脑抑制</strong><br /><small
+                    >能量↓ + 水肿 (湿海绵)</small
+                  >
+                </td>
+                <td>
+                  <strong>脑脱水</strong><br /><small
+                    >酸中毒 + 灌注差 (干海绵)</small
+                  >
+                </td>
+              </tr>
+              <tr class="fragment">
+                <td><strong>特征体征</strong></td>
+                <td>扑翼样震颤</td>
+                <td>Kussmaul 呼吸 (深大呼吸)</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Slide 9: 生物转化流水线 -->
+        <section>
+          <h3>肝脏生物转化——“胆红素流水线”</h3>
+          <p style="font-size: 0.8em; color: #666">典型的 Phase II 结合反应</p>
+
+          <div class="factory-line">
+            <div class="factory-item fragment fade-in-then-semi-out">
+              <i class="fas fa-truck-loading text-yellow"></i>
+              <br /><span style="font-size: 0.3em">Step 1: 进厂 (摄取)</span>
+            </div>
+            <div class="arrow-right">→</div>
+            <div class="factory-item fragment fade-in-then-semi-out">
+              <i class="fas fa-cogs text-blue"></i>
+              <br /><span style="font-size: 0.3em"
+                >Step 2: 加工 (UGT酶结合)</span
+              >
+              <div style="font-size: 0.2em; color: #666">
+                $$ \text{Bili} + \text{UDPGA} \to \text{结合Bili} $$
+              </div>
+            </div>
+            <div class="arrow-right">→</div>
+            <div class="factory-item fragment fade-in-then-semi-out">
+              <i class="fas fa-truck text-green"></i>
+              <br /><span style="font-size: 0.3em"
+                >Step 3: 出厂 (胆汁排泄)</span
+              >
+            </div>
+          </div>
+          <aside class="notes">
+            话术：这是生化课本上最经典的 II 相反应。肝脏就像一个处理垃圾的工厂。
+          </aside>
+        </section>
+
+        <!-- Slide 10: 工厂瘫痪 -->
+        <section>
+          <h3>肝硬化时的“工厂瘫痪”</h3>
+          <div class="factory-line factory-broken">
+            <div class="factory-item">
+              <i class="fas fa-truck-loading"></i>
+              <div class="cross-mark fragment">×</div>
+              <br /><span style="font-size: 0.3em">工人少 (摄取↓)</span>
+            </div>
+            <div class="factory-item">
+              <i class="fas fa-cogs"></i>
+              <div class="cross-mark fragment">×</div>
+              <br /><span style="font-size: 0.3em">机器坏 (结合↓)</span>
+            </div>
+            <div class="factory-item">
+              <i class="fas fa-truck"></i>
+              <div class="cross-mark fragment">×</div>
+              <br /><span style="font-size: 0.3em">路堵死 (排泄↓)</span>
+            </div>
+          </div>
+          <div class="box fragment" style="border: 2px solid var(--liver-red)">
+            <h4 class="text-red">结果：混合型黄疸</h4>
+            <p>TBil 150 / DBil 90 (以结合胆红素升高为主)</p>
+          </div>
+          <aside class="notes">
+            话术：肝硬化病人就是这个 UGT
+            酶车间罢工了，同时产品还运不出去，所以病人才会‘黄’得那么厉害。
+          </aside>
+        </section>
+
+        <!-- Slide 11: 总结 -->
+        <section>
+          <h2>总结：一图流</h2>
+          <div style="position: relative; height: 400px; margin-top: 30px">
+            <!-- 中心 -->
+            <div
+              style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: var(--liver-red);
+                color: white;
+                padding: 30px;
+                border-radius: 50%;
+                width: 150px;
+                height: 150px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 2;
+              "
+            >
+              <h3>肝硬化</h3>
+            </div>
+
+            <!-- 分支 1 -->
+            <div
+              class="fragment"
+              style="
+                position: absolute;
+                top: 10%;
+                left: 10%;
+                width: 200px;
+                text-align: center;
+              "
+            >
+              <div class="box" style="border-top: 5px solid var(--med-blue)">
+                <h4>合成 ↓</h4>
+                <p>Alb < 30</p>
+                <i class="fas fa-arrow-down"></i>
+                <p class="text-blue"><strong>腹水</strong></p>
+              </div>
+            </div>
+
+            <!-- 分支 2 -->
+            <div
+              class="fragment"
+              style="
+                position: absolute;
+                top: 10%;
+                right: 10%;
+                width: 200px;
+                text-align: center;
+              "
+            >
+              <div class="box" style="border-top: 5px solid #ffcc00">
+                <h4>代谢 ↓</h4>
+                <p>Bili ↑</p>
+                <i class="fas fa-arrow-down"></i>
+                <p class="text-yellow"><strong>黄疸</strong></p>
+              </div>
+            </div>
+
+            <!-- 分支 3 -->
+            <div
+              class="fragment"
+              style="
+                position: absolute;
+                bottom: 0%;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 250px;
+                text-align: center;
+              "
+            >
+              <div class="box" style="border-top: 5px solid red">
+                <h4>解毒 ↓</h4>
+                <p>NH₃ ↑</p>
+                <i class="fas fa-arrow-down"></i>
+                <p class="text-red"><strong>肝性脑病</strong></p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 12: 课后思考 -->
+        <section>
+          <h3>
+            <i class="far fa-lightbulb text-yellow"></i> 课后思考 (Next Step)
+          </h3>
+          <div class="box" style="padding: 40px; text-align: left">
+            <p style="font-size: 1.2em; line-height: 1.5">
+              既然氨在脑内主要消耗了 <strong>$\alpha$-酮戊二酸</strong> 和
+              <strong>谷氨酸</strong>...
+            </p>
+            <hr />
+            <p
+              class="fragment text-blue"
+              style="font-size: 1.3em; font-weight: bold"
+            >
+              为什么我们在治疗肝性脑病时，有时会补充支链氨基酸（BCAA）？
+            </p>
+          </div>
+          <p style="margin-top: 30px; font-size: 0.8em; color: #888">
+            提示：这与假性神经递质的竞争性抑制有关。
+          </p>
+        </section>
+      </div>
+    </div>
+
+    <!-- AI Assistant UI -->
+    <div id="ai-fab" class="ai-fab" title="AI 助教" onclick="toggleAI()">
+      <i class="fas fa-robot"></i>
+    </div>
+
+    <div id="ai-panel" class="ai-panel hidden">
+      <div class="ai-header">
+        <h3><i class="fas fa-user-md"></i> ✨ AI 临床助教</h3>
+        <button class="close-btn" onclick="toggleAI()">&times;</button>
+      </div>
+      <div class="ai-content" id="ai-chat-history">
+        <div class="ai-message system">
+          你好！我是你的 AI 助教。🧐<br />
+          我可以为你：<br />
+          1. <strong>深度解析</strong>当前页面的难点。<br />
+          2. <strong>出题测验</strong>你的掌握情况。<br />
+          3. 生成相关的<strong>临床病例</strong>。
         </div>
       </div>
-    </main>
+      <div class="ai-controls">
+        <button class="ai-action-btn" onclick="askAI('explain')">
+          🔍 深度解析
+        </button>
+        <button class="ai-action-btn" onclick="askAI('quiz')">
+          📝 出题测验
+        </button>
+        <button class="ai-action-btn" onclick="askAI('clinical')">
+          🏥 生成病例
+        </button>
+      </div>
+      <div class="ai-input-area">
+        <input
+          type="text"
+          id="user-query"
+          placeholder="输入问题..."
+          onkeypress="handleEnter(event)"
+        />
+        <button id="send-btn" onclick="askAI('custom')">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 引入 Reveal.js 脚本 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/math/math.min.js"></script>
+
+    <script>
+      // 初始化 Reveal
+      Reveal.initialize({
+        hash: false,
+        history: false,
+        controls: true,
+        progress: true,
+        center: true,
+        transition: "slide",
+        plugins: [RevealMath.KaTeX],
+      });
+
+      // --- AI Assistant Logic ---
+      const apiKey = ""; // 系统会自动填充 API Key
+
+      function toggleAI() {
+        const panel = document.getElementById("ai-panel");
+        panel.classList.toggle("hidden");
+      }
+
+      function handleEnter(event) {
+        if (event.key === "Enter") {
+          askAI("custom");
+        }
+      }
+
+      function getCurrentContext() {
+        // 获取当前幻灯片的文本内容
+        const currentSlide = Reveal.getCurrentSlide();
+        return currentSlide
+          ? currentSlide.innerText.replace(/\s+/g, " ").trim()
+          : "无内容";
+      }
+
+      async function askAI(type) {
+        const inputField = document.getElementById("user-query");
+        const chatHistory = document.getElementById("ai-chat-history");
+        const sendBtn = document.getElementById("send-btn");
+
+        let userPrompt = "";
+        let context = getCurrentContext();
+
+        // 构建 Prompt
+        if (type === "custom") {
+          const query = inputField.value.trim();
+          if (!query) return;
+          userPrompt = query;
+          inputField.value = "";
+          addMessage("user", query);
+        } else if (type === "explain") {
+          userPrompt = `请用通俗易懂的语言（例如使用比喻）深度解析以下 PPT 内容中的核心生化机制：\n"${context}"\n请确保解释对医学生有帮助。`;
+          addMessage("user", "🔍 请帮我深度解析这一页的内容。");
+        } else if (type === "quiz") {
+          userPrompt = `基于以下 PPT 内容：\n"${context}"\n请生成一道单项选择题（包含A/B/C/D选项），并附带正确答案和简短解析。`;
+          addMessage("user", "📝 请根据这页内容出个题考考我。");
+        } else if (type === "clinical") {
+          userPrompt = `基于以下 PPT 内容中的生化指标或机制：\n"${context}"\n请构建一个简短的临床病例场景（Patient Case），并询问学生预期的实验室检查结果或症状是什么。`;
+          addMessage("user", "🏥 请生成一个相关的临床病例。");
+        }
+
+        // 显示加载状态
+        const loadingId = addMessage(
+          "system",
+          '<span class="typing-indicator">思考中</span>'
+        );
+        sendBtn.disabled = true;
+
+        try {
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [
+                  {
+                    parts: [
+                      {
+                        text: `你是一位专业的医学院教授，擅长生化与临床医学。请根据以下请求回答。请使用 Markdown 格式。\n\n${userPrompt}`,
+                      },
+                    ],
+                  },
+                ],
+              }),
+            }
+          );
+
+          const data = await response.json();
+          const aiText =
+            data.candidates?.[0]?.content?.parts?.[0]?.text ||
+            "抱歉，我现在无法回答。";
+
+          // 更新消息内容
+          const loadingMsg = document.getElementById(loadingId);
+          loadingMsg.innerHTML = marked.parse(aiText); // 使用 marked 渲染 Markdown
+        } catch (error) {
+          console.error(error);
+          const loadingMsg = document.getElementById(loadingId);
+          loadingMsg.innerHTML = "网络错误，请稍后再试。";
+        } finally {
+          sendBtn.disabled = false;
+          // 滚动到底部
+          chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+      }
+
+      function addMessage(role, htmlContent) {
+        const chatHistory = document.getElementById("ai-chat-history");
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `ai-message ${role}`;
+        msgDiv.id = `msg-${Date.now()}`;
+        msgDiv.innerHTML = htmlContent;
+        chatHistory.appendChild(msgDiv);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+        return msgDiv.id;
+      }
+    </script>
   </body>
 </html>
