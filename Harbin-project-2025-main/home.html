@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>"赤心图迹"红色景点地图 - 传承红色基因</title>
+    <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Microsoft YaHei", Arial, sans-serif;
+        color: #333;
+        line-height: 1.6;
+      }
+
+      /* 顶部通栏 */
+      .header {
+        background: linear-gradient(135deg, #8b0000 0%, #dc143c 100%);
+        color: white;
+        padding: 15px 0;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .header h1 {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+
+      .header p {
+        font-size: 14px;
+        opacity: 0.9;
+      }
+
+      /* 轮播图 */
+      .carousel {
+        position: relative;
+        width: 100%;
+        height: 500px;
+        overflow: hidden;
+        background: #000;
+      }
+
+      .carousel-item {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 0.8s ease-in-out;
+        background-size: cover;
+        background-position: center;
+      }
+
+      .carousel-item.active {
+        opacity: 1;
+      }
+
+      .carousel-item h2 {
+        position: absolute;
+        bottom: 50px;
+        left: 50px;
+        color: white;
+        font-size: 42px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+        background: rgba(139, 0, 0, 0.7);
+        padding: 20px 30px;
+        border-radius: 5px;
+      }
+
+      .carousel-controls {
+        position: absolute;
+        bottom: 30px;
+        right: 30px;
+        z-index: 10;
+      }
+
+      .carousel-dot {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
+        margin: 0 6px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .carousel-dot.active {
+        background: white;
+      }
+
+      .carousel-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+        border: none;
+        font-size: 24px;
+        padding: 15px 20px;
+        cursor: pointer;
+        transition: background 0.3s;
+        z-index: 10;
+      }
+
+      .carousel-arrow:hover {
+        background: rgba(255, 255, 255, 0.6);
+      }
+
+      .carousel-arrow.prev {
+        left: 20px;
+      }
+
+      .carousel-arrow.next {
+        right: 20px;
+      }
+
+      /* 内容容器 */
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      /* 四个板块 */
+      .sections {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+        padding: 60px 0;
+      }
+
+      .section-card {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition:
+          transform 0.3s,
+          box-shadow 0.3s;
+        cursor: pointer;
+      }
+
+      .section-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 8px 25px rgba(139, 0, 0, 0.2);
+      }
+
+      .section-card-image {
+        width: 100%;
+        height: 220px;
+        background: linear-gradient(135deg, #8b0000 0%, #dc143c 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 60px;
+      }
+
+      .section-card-content {
+        padding: 25px;
+      }
+
+      .section-card h3 {
+        color: #8b0000;
+        font-size: 22px;
+        margin-bottom: 15px;
+      }
+
+      .section-card p {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 20px;
+        line-height: 1.8;
+      }
+
+      .section-card a {
+        display: inline-block;
+        background: linear-gradient(135deg, #8b0000 0%, #dc143c 100%);
+        color: white;
+        padding: 10px 25px;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: opacity 0.3s;
+        font-weight: bold;
+      }
+
+      .section-card a:hover {
+        opacity: 0.8;
+      }
+
+      /* 底部版权 */
+      .footer {
+        background: #333;
+        color: white;
+        text-align: center;
+        padding: 40px 0;
+        margin-top: 60px;
+        border-top: 3px solid #8b0000;
+      }
+
+      .footer-content {
+        margin-bottom: 15px;
+      }
+
+      .footer h4 {
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
+
+      .footer p {
+        font-size: 14px;
+        opacity: 0.8;
+      }
+
+      .footer-links {
+        margin: 15px 0;
+        font-size: 13px;
+      }
+
+      .footer-links a {
+        color: #dc143c;
+        text-decoration: none;
+        margin: 0 15px;
+        transition: color 0.3s;
+      }
+
+      .footer-links a:hover {
+        color: white;
+      }
+
+      .footer-copyright {
+        border-top: 1px solid #555;
+        padding-top: 20px;
+        margin-top: 20px;
+        font-size: 12px;
+        opacity: 0.7;
+      }
+
+      /* 响应式设计 */
+      @media (max-width: 768px) {
+        .carousel {
+          height: 300px;
+        }
+
+        .carousel-item h2 {
+          font-size: 24px;
+          bottom: 30px;
+          left: 20px;
+          padding: 15px 20px;
+        }
+
+        .sections {
+          grid-template-columns: 1fr;
+          padding: 40px 0;
+        }
+
+        .header h1 {
+          font-size: 20px;
+        }
+
+        .section-card-image {
+          height: 150px;
+          font-size: 40px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 顶部通栏 -->
+    <div class="header">
+      <h1>"赤心图迹"红色景点地图</h1>
+      <p>传承红色基因 · 弘扬革命精神</p>
+    </div>
+
+    <!-- 轮播图 -->
+    <div class="carousel">
+      <div
+        class="carousel-item active"
+        style="background-image: url(&quot;img/731.png&quot;)"
+      >
+        <h2>侵华日军第七三一部队罪证陈列馆</h2>
+      </div>
+      <div
+        class="carousel-item"
+        style="background-image: url(&quot;img/抗联.png&quot;)"
+      >
+        <h2>东北抗日联军纪念园</h2>
+      </div>
+      <div
+        class="carousel-item"
+        style="background-image: url(&quot;img/918.png&quot;)"
+      >
+        <h2>"九·一八"历史博物馆</h2>
+      </div>
+      <div
+        class="carousel-item"
+        style="background-image: url(&quot;img/延安革命纪念馆.png&quot;)"
+      >
+        <h2>延安革命纪念馆</h2>
+      </div>
+
+      <button class="carousel-arrow prev" onclick="prevCarousel()">‹</button>
+      <button class="carousel-arrow next" onclick="nextCarousel()">›</button>
+
+      <div class="carousel-controls">
+        <span class="carousel-dot active" onclick="goToCarousel(0)"></span>
+        <span class="carousel-dot" onclick="goToCarousel(1)"></span>
+        <span class="carousel-dot" onclick="goToCarousel(2)"></span>
+        <span class="carousel-dot" onclick="goToCarousel(3)"></span>
+      </div>
+    </div>
+
+    <!-- 四个板块 -->
+    <div class="container">
+      <div class="sections">
+        <!-- 板块1：交互地图 -->
+        <div class="section-card">
+          <div class="section-card-image">🗺️</div>
+          <div class="section-card-content">
+            <h3>交互地图</h3>
+            <p>
+              浏览全国各地红色景点的地理分布，通过省份筛选快速定位您感兴趣的景点，实时显示坐标信息。
+            </p>
+            <a href="index.html">进入地图</a>
+          </div>
+        </div>
+
+        <!-- 板块2：历史学习 -->
+        <div class="section-card">
+          <div class="section-card-image">📚</div>
+          <div class="section-card-content">
+            <h3>历史学习</h3>
+            <p>
+              深入了解各类纪念馆背后的历史故事，从革命战争到建设发展，见证中华民族的光辉历程。
+            </p>
+            <a href="#history">了解更多</a>
+          </div>
+        </div>
+
+        <!-- 板块3：红色旅游 -->
+        <div class="section-card">
+          <div class="section-card-image">✈️</div>
+          <div class="section-card-content">
+            <h3>红色旅游</h3>
+            <p>
+              规划您的红色旅游路线，访问各类爱国主义教育基地，感受革命精神，缅怀革命先烈。
+            </p>
+            <a href="#travel">旅游指南</a>
+          </div>
+        </div>
+
+        <!-- 板块4：参观信息 -->
+        <div class="section-card">
+          <div class="section-card-image">ℹ️</div>
+          <div class="section-card-content">
+            <h3>参观信息</h3>
+            <p>
+              获取各景点的开放时间、门票价格、交通方式等实用信息，为您的参观提供便利。
+            </p>
+            <a href="#info">查看信息</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部版权 -->
+    <div class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <h4>"赤心图迹"红色景点地图</h4>
+          <p>致力于弘扬革命精神，传承红色文化，服务爱国主义教育</p>
+        </div>
+
+        <div class="footer-links">
+          <a href="#about">关于我们</a>
+          <a href="#contact">联系方式</a>
+          <a href="#sitemap">网站地图</a>
+          <a href="#privacy">隐私政策</a>
+        </div>
+
+        <div class="footer-copyright">
+          <p>&copy; 2025 "赤心图迹"红色景点地图 All Rights Reserved.</p>
+          <p>本网站内容仅供学习和参考使用</p>
+          <p>地图数据来源：高德地图 | 景点数据：全国爱国主义教育基地</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentIndex = 0;
+      const items = document.querySelectorAll(".carousel-item");
+      const dots = document.querySelectorAll(".carousel-dot");
+
+      function showCarousel(index) {
+        items.forEach((item, i) => {
+          item.classList.remove("active");
+          dots[i].classList.remove("active");
+        });
+        items[index].classList.add("active");
+        dots[index].classList.add("active");
+      }
+
+      function nextCarousel() {
+        currentIndex = (currentIndex + 1) % items.length;
+        showCarousel(currentIndex);
+      }
+
+      function prevCarousel() {
+        currentIndex = (currentIndex - 1 + items.length) % items.length;
+        showCarousel(currentIndex);
+      }
+
+      function goToCarousel(index) {
+        currentIndex = index;
+        showCarousel(currentIndex);
+      }
+
+      // 自动轮播（每5秒切换一次）
+      setInterval(nextCarousel, 5000);
+    </script>
+  </body>
+</html>
