@@ -1,47 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Leaflet 基础使用</title>
+    <!-- 1. 引入 Leaflet 的 CSS（必须先引，否则地图样式错乱） -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <!-- 2. 引入 Leaflet 的 JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-      /* 取消列表前的点 */
-      /* li {
-        list-style: none;
-      } */
-      li:first-child {
-        color: red;
-      }
-      li:nth-child(2n) {
-        color: green;
-      }
-      li::after {
-        content: "这是第" attr(data-index) "个";
-      }
-      div {
-        width: 100px;
-        height: 200px;
-        padding: 10px;
-        background: #18bc77;
-        border: 3px dotted #8a1313;
-        margin: 10px;
+      /* 3. 设置地图容器样式（和你之前问的 100vh 对应） */
+      #map {
+        height: 100vh; /* 占满整个视口高度 */
+        width: 100%; /* 占满整个视口宽度 */
       }
     </style>
   </head>
   <body>
-    <!-- 空格 -->
-    &nbsp;
-    <div>cnm</div>
+    <!-- 4. 创建地图容器 -->
+    <div id="map"></div>
 
-    <ul>
-      <li>1</li>
-      <li>2</li>
-      <li>3</li>
-      <li>4</li>
-      <li>5</li>
-      <li>6</li>
-      <li>7</li>
-      <li>8</li>
-    </ul>
+    <script>
+      // 5. 初始化地图（核心代码）
+      // L.map("容器ID")：创建地图实例
+      // setView([纬度, 经度], 缩放级别)：设置地图中心和缩放级（缩放级 1-18，数字越大越精细）
+      const map = L.map("map").setView([39.9042, 116.4074], 13); // 北京坐标
+
+      // 6. 添加地图瓦片图层（必加，否则地图是空白的）
+      // 这里用 OpenStreetMap 免费瓦片，也可以替换成高德/百度瓦片（需适配）
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map); // addTo(map)：把图层添加到地图实例
+
+      // 7. 可选：添加标记点（Marker）
+      const marker = L.marker([39.9042, 116.4074]) // 标记点坐标（北京天安门）
+        .addTo(map) // 添加到地图
+        .bindPopup("这里是北京天安门！"); // 绑定弹窗，点击标记点显示
+    </script>
   </body>
 </html>
